@@ -1,18 +1,19 @@
 from fastapi import FastAPI
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from rag import rag_answer
 
 app = FastAPI()
-app.mount("/static", StaticFiles(directory="static"), name="static")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],
+    allow_methods=["POST"],
+    allow_headers=["Content-Type"],
+)
 
 class Query(BaseModel):
     question: str
-
-@app.get("/")
-def root():
-    return FileResponse("static/index.html")
 
 @app.post("/chat")
 def chat(query: Query):
