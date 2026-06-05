@@ -24,7 +24,7 @@ def read_file(path: str) -> str:
         return f.read()
 
 def ingest_docs(folder="./docs"):
-    files = [f for f in os.listdir(folder) if f.endswith((".txt", ".pdf"))]
+    files = [f for f in os.listdir(folder) if f.endswith((".txt", ".pdf", ".md"))]
     print(f"Found {len(files)} documents")
     
     for filename in files:
