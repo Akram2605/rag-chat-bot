@@ -34,7 +34,19 @@ CONTEXT:
     )
     return response.choices[0].message.content
 
+def llm_only(query: str) -> str:
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[
+            {"role": "system", "content": "You are a helpful assistant."},
+            {"role": "user", "content": query}
+        ],
+        temperature=0.2
+    )
+    return response.choices[0].message.content
+
 def rag_answer(query: str) -> dict:
     chunks = retrieve(query)
-    answer = generate(query, chunks)
-    return {"answer": answer, "sources": chunks}
+    rag = generate(query, chunks)
+    llm = llm_only(query)
+    return {"rag_answer": rag, "llm_answer": llm, "sources": chunks}

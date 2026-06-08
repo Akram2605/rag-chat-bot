@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 
-type Message = { role: "user" | "bot"; text: string };
+type Message = { role: "user" | "bot"; rag?: string; llm?: string; text?: string };
 type Tab = "chat" | "documents";
 type IngestStatus = "idle" | "ingesting" | "done" | "error";
 type IngestResult = { file: string; chunks: number };
@@ -43,7 +43,7 @@ export default function Home() {
         body: JSON.stringify({ question: q }),
       });
       const data = await res.json();
-      setMessages((prev) => [...prev, { role: "bot", text: data.answer }]);
+      setMessages((prev) => [...prev, { role: "bot", rag: data.rag_answer, llm: data.llm_answer }]);
     } catch {
       setMessages((prev) => [
         ...prev,
@@ -127,20 +127,43 @@ export default function Home() {
           <>
             <div className="flex-1 overflow-y-auto px-5 py-4 flex flex-col gap-3">
               {messages.map((msg, i) => (
-                <div
-                  key={i}
-                  className={`max-w-[78%] px-4 py-2.5 rounded-xl text-sm leading-relaxed whitespace-pre-wrap ${
-                    msg.role === "user"
-                      ? "bg-blue-500 text-white self-end rounded-br-sm"
-                      : "bg-gray-100 text-gray-800 self-start rounded-bl-sm"
-                  }`}
-                >
-                  {msg.text}
+                <div key={i}>
+                  {msg.role === "user" ? (
+                    <div className="max-w-[78%] px-4 py-2.5 rounded-xl text-sm leading-relaxed whitespace-pre-wrap bg-blue-500 text-white self-end ml-auto rounded-br-sm">
+                      {msg.text}
+                    </div>
+                  ) : msg.rag || msg.llm ? (
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="flex flex-col gap-1">
+                        <span className="text-xs font-semibold text-emerald-600 uppercase tracking-wide">With RAG</span>
+                        <div className="px-4 py-2.5 rounded-xl text-sm leading-relaxed whitespace-pre-wrap bg-emerald-50 text-gray-800 border border-emerald-200">
+                          {msg.rag}
+                        </div>
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <span className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Without RAG</span>
+                        <div className="px-4 py-2.5 rounded-xl text-sm leading-relaxed whitespace-pre-wrap bg-gray-100 text-gray-800 border border-gray-200">
+                          {msg.llm}
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="max-w-[78%] px-4 py-2.5 rounded-xl text-sm leading-relaxed whitespace-pre-wrap bg-gray-100 text-gray-800 self-start rounded-bl-sm">
+                      {msg.text}
+                    </div>
+                  )}
                 </div>
               ))}
               {chatLoading && (
-                <div className="max-w-[78%] px-4 py-2.5 rounded-xl text-sm bg-gray-100 text-gray-400 italic self-start rounded-bl-sm">
-                  Thinking...
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="flex flex-col gap-1">
+                    <span className="text-xs font-semibold text-emerald-600 uppercase tracking-wide">With RAG</span>
+                    <div className="px-4 py-2.5 rounded-xl text-sm bg-emerald-50 text-gray-400 italic border border-emerald-200">Thinking...</div>
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Without RAG</span>
+                    <div className="px-4 py-2.5 rounded-xl text-sm bg-gray-100 text-gray-400 italic border border-gray-200">Thinking...</div>
+                  </div>
                 </div>
               )}
               <div ref={chatEndRef} />
